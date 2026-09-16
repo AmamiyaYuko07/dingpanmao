@@ -1,0 +1,36 @@
+<Window x:Class="DingPanMao.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="盯盘猫"
+        Icon="/Resources/app.ico"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Topmost="True"
+        WindowStartupLocation="Manual"
+        Cursor="SizeWE"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display">
+    <Grid>
+        <Grid.ContextMenu>
+            <ContextMenu Background="#FF1E2027" BorderBrush="#33FFFFFF" Foreground="#E9EEF5">
+                <MenuItem x:Name="RecentAlertsMenu" Header="最近提醒" />
+                <Separator Background="#33FFFFFF" />
+                <MenuItem x:Name="SettingsMenu" Header="设置…" Click="OnSettingsClick" />
+                <MenuItem x:Name="RelocateMenu" Header="复位到默认位置" Click="OnRelocateClick" />
+                <Separator Background="#33FFFFFF" />
+                <MenuItem x:Name="ExitMenu" Header="退出" Click="OnExitClick" />
+            </ContextMenu>
+        </Grid.ContextMenu>
+
+        <Border x:Name="Root"
+                CornerRadius="6"
+                BorderBrush="#33FFFFFF"
+                BorderThickness="1">
+            <Grid x:Name="TileHost" Margin="2" />
+        </Border>
+    </Grid>
+</Window>

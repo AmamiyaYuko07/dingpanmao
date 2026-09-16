@@ -1,0 +1,22 @@
+# 构建产物
+bin/
+obj/
+dist/
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.user
+*.suo
+
+# 本地截图与临时文件
+shot*.png
+check*.png
+icon-check.png
+
+# 文档配图（本地生成，不随仓库分发）
+docs/
+
+# 系统文件
+Thumbs.db
+.DS_Store

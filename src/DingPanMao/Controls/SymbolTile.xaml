@@ -1,0 +1,62 @@
+<UserControl x:Class="DingPanMao.Controls.SymbolTile"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:DingPanMao.Controls"
+             UseLayoutRounding="True"
+             SnapsToDevicePixels="True">
+    <Grid>
+        <Border x:Name="FlashLayer" CornerRadius="4" Background="Transparent">
+            <Grid x:Name="Layout" Margin="7,2,7,3">
+                <Grid.RowDefinitions>
+                    <RowDefinition x:Name="HeaderRow" Height="Auto" />
+                    <RowDefinition x:Name="ChartRow" Height="*" />
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock x:Name="NameText"
+                               Grid.Column="0"
+                               Text="--"
+                               TextTrimming="CharacterEllipsis"
+                               Foreground="#C2CCDA"
+                               VerticalAlignment="Center" />
+
+                    <StackPanel x:Name="QuotePanel"
+                                Grid.Column="1"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                ClipToBounds="True">
+                        <TextBlock x:Name="PriceText"
+                                   Text="--"
+                                   FontWeight="SemiBold"
+                                   FontFamily="Consolas, Microsoft YaHei UI"
+                                   Foreground="#E9EEF5"
+                                   VerticalAlignment="Center" />
+                        <TextBlock x:Name="ChangeText"
+                                   Text=""
+                                   FontFamily="Consolas, Microsoft YaHei UI"
+                                   Foreground="#8892A4"
+                                   VerticalAlignment="Bottom" />
+                    </StackPanel>
+
+                    <TextBlock x:Name="AlertText"
+                               Grid.Column="0"
+                               Grid.ColumnSpan="2"
+                               Text=""
+                               FontWeight="SemiBold"
+                               Foreground="#FFC53D"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis"
+                               Visibility="Collapsed" />
+                </Grid>
+
+                <local:Sparkline x:Name="Spark" Grid.Row="1" Margin="0,1,0,0" />
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
