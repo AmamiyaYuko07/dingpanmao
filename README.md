@@ -25,11 +25,12 @@
 
 ## 快速开始
 
-1. 下载 `dist/DingPanMao.exe`
-2. 双击运行，长条会出现在任务栏系统托盘的左边
+1. 打开 [Releases](https://github.com/AmamiyaYuko07/dingpanmao/releases)，下载 `DingPanMao-*-win-x64.zip`
+   - `latest` 是每次提交 main 自动构建的，`v1.0.0` 这类是正式版本
+2. 解压后双击 `DingPanMao.exe`，长条会出现在任务栏系统托盘的左边
 3. 右键长条 → **设置…** 挑选品种、语言和提醒开关
 
-需要 .NET 10 桌面运行时。若想免安装运行时，用下面的自包含发布方式重新构建。
+发布包是**框架依赖**版本，机器上需要 [.NET 10 桌面运行时](https://dotnet.microsoft.com/download/dotnet/10.0)。不想装运行时的话，按下面「构建」一节自己打一个自包含版本。
 
 ## 使用说明
 
@@ -59,7 +60,13 @@
 
 ## 构建
 
+仓库里不包含编译好的可执行文件（`dist/` 已被忽略），需要自己构建：
+
 ```bash
+# 克隆
+git clone https://github.com/AmamiyaYuko07/dingpanmao.git
+cd dingpanmao
+
 # 开发调试
 dotnet build src/DingPanMao/DingPanMao.csproj
 
