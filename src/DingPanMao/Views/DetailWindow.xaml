@@ -4,10 +4,10 @@
         xmlns:controls="clr-namespace:DingPanMao.Controls"
         Title="盯盘猫"
         Icon="/Resources/app.ico"
-        Width="460"
-        Height="420"
-        MinWidth="380"
-        MinHeight="320"
+        Width="560"
+        Height="620"
+        MinWidth="440"
+        MinHeight="460"
         Background="#FF1B1D23"
         Foreground="#E9EEF5"
         WindowStartupLocation="CenterScreen"
@@ -16,28 +16,62 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0">
-            <TextBlock x:Name="NameText" FontSize="14" FontWeight="SemiBold" />
+            <TextBlock x:Name="NameText"
+                       FontSize="15"
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Center"
+                       TextTrimming="CharacterEllipsis" />
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <TextBlock x:Name="PriceText" FontSize="16" FontWeight="SemiBold" FontFamily="Consolas" />
-                <TextBlock x:Name="ChangeText" Margin="8,0,0,1" FontSize="12" FontFamily="Consolas"
+                <TextBlock x:Name="PriceText"
+                           FontSize="17"
+                           FontWeight="SemiBold"
+                           FontFamily="Consolas, Microsoft YaHei UI" />
+                <TextBlock x:Name="ChangeText"
+                           Margin="8,0,0,2"
+                           FontSize="12"
+                           FontFamily="Consolas, Microsoft YaHei UI"
                            VerticalAlignment="Bottom" />
             </StackPanel>
         </Grid>
 
-        <TextBlock x:Name="IntradayLabel" Grid.Row="1" Margin="0,14,0,4" FontSize="11" Foreground="#8A94A6" />
-        <Border Grid.Row="2" Background="#FF23262E" CornerRadius="4" Padding="6">
-            <controls:Sparkline x:Name="IntradayChart" />
+        <TextBlock x:Name="StatsText"
+                   Grid.Row="1"
+                   Margin="0,8,0,0"
+                   FontSize="11"
+                   FontFamily="Consolas, Microsoft YaHei UI"
+                   Foreground="#8A94A6" />
+
+        <TextBlock x:Name="IntradayLabel"
+                   Grid.Row="2"
+                   Margin="0,14,0,4"
+                   FontSize="11"
+                   Foreground="#8A94A6" />
+
+        <Border Grid.Row="3"
+                Background="#FF23262E"
+                CornerRadius="4"
+                Padding="4">
+            <controls:ChartView x:Name="IntradayChart" />
         </Border>
 
-        <TextBlock x:Name="DailyLabel" Grid.Row="3" Margin="0,14,0,4" FontSize="11" Foreground="#8A94A6" />
-        <Border Grid.Row="4" Background="#FF23262E" CornerRadius="4" Padding="6">
-            <controls:Sparkline x:Name="DailyChart" />
+        <TextBlock x:Name="DailyLabel"
+                   Grid.Row="4"
+                   Margin="0,14,0,4"
+                   FontSize="11"
+                   Foreground="#8A94A6" />
+
+        <Border Grid.Row="5"
+                Background="#FF23262E"
+                CornerRadius="4"
+                Padding="4">
+            <controls:ChartView x:Name="DailyChart" />
         </Border>
     </Grid>
 </Window>

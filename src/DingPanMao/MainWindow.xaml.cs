@@ -64,6 +64,9 @@ public partial class MainWindow : Window
 
     private double _barTop;
 
+    /// <summary>按下时落在哪个格子上，用来区分「点击」和「拖动」。</summary>
+    private SymbolTile? _pressedTile;
+
     public MainWindow()
     {
         _settings = SettingsStore.Load();
@@ -125,7 +128,6 @@ public partial class MainWindow : Window
             tile.ApplyStyle(slot.Size, _settings.FontScale, _settings.RedUpGreenDown);
             tile.ShowPlaceholder(slot.Symbol.NameFor(Lang.CurrentLanguage));
             tile.MouseWheel += OnTileWheel;
-            tile.MouseLeftButtonUp += OnTileClick;
             Grid.SetColumn(tile, TileHost.ColumnDefinitions.Count - 1);
             TileHost.Children.Add(tile);
 
@@ -258,6 +260,12 @@ public partial class MainWindow : Window
         if (Environment.GetCommandLineArgs().Contains("--settings"))
         {
             OnSettingsClick(this, new RoutedEventArgs());
+        }
+
+        // 便于调试：带 --detail 参数启动时会直接打开第一个格子的大图。
+        if (Environment.GetCommandLineArgs().Contains("--detail") && _tiles.Count > 0)
+        {
+            OpenDetailFor(_tiles[0]);
         }
     }
 
@@ -587,13 +595,24 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
-    private void OnTileClick(object sender, MouseButtonEventArgs e)
+    /// <summary>从鼠标事件源往上找所属的格子。</summary>
+    private static SymbolTile? FindTile(DependencyObject? source)
     {
-        if (_dragged || !_settings.OpenDetailOnClick || sender is not SymbolTile tile)
+        while (source is not null)
         {
-            return;
+            if (source is SymbolTile tile)
+            {
+                return tile;
+            }
+
+            source = VisualTreeHelper.GetParent(source);
         }
 
+        return null;
+    }
+
+    private void OpenDetailFor(SymbolTile tile)
+    {
         var index = _tiles.IndexOf(tile);
         if (index < 0)
         {
@@ -601,7 +620,8 @@ public partial class MainWindow : Window
         }
 
         _detailWindow?.Close();
-        _detailWindow = new DetailWindow(_market, _symbols[index], _settings);
+        _quotes.TryGetValue(_symbols[index].Id, out var quote);
+        _detailWindow = new DetailWindow(_market, _symbols[index], _settings, quote);
         _detailWindow.Closed += (_, _) => _detailWindow = null;
         _detailWindow.Show();
         _detailWindow.Activate();
@@ -679,6 +699,7 @@ public partial class MainWindow : Window
 
         _dragging = true;
         _dragged = false;
+        _pressedTile = FindTile(e.OriginalSource as DependencyObject);
         _dragOriginScreenX = PointToScreen(e.GetPosition(this)).X;
         _dragOriginLeft = Left;
         CaptureMouse();
@@ -732,5 +753,12 @@ public partial class MainWindow : Window
             SettingsStore.Save(_settings);
             NudgeTopmost();
         }
+        else if (_pressedTile is not null && _settings.OpenDetailOnClick)
+        {
+            // 没有移动就是一次点击，打开该品种的大图。
+            OpenDetailFor(_pressedTile);
+        }
+
+        _pressedTile = null;
     }
 }
