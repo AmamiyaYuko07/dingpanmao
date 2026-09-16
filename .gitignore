@@ -13,6 +13,7 @@ dist/
 shot*.png
 check*.png
 icon-check.png
+*-check.png
 
 # 文档配图（本地生成，不随仓库分发）
 docs/

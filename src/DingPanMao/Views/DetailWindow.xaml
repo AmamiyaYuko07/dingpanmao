@@ -48,11 +48,18 @@
                    FontFamily="Consolas, Microsoft YaHei UI"
                    Foreground="#8A94A6" />
 
-        <TextBlock x:Name="IntradayLabel"
-                   Grid.Row="2"
-                   Margin="0,14,0,4"
-                   FontSize="11"
-                   Foreground="#8A94A6" />
+        <Grid Grid.Row="2" Margin="0,14,0,4">
+            <TextBlock x:Name="IntradayLabel"
+                       FontSize="11"
+                       Foreground="#8A94A6"
+                       HorizontalAlignment="Left" />
+            <TextBlock x:Name="IntradayHover"
+                       FontSize="11"
+                       FontFamily="Consolas, Microsoft YaHei UI"
+                       Foreground="#FFC53D"
+                       HorizontalAlignment="Right"
+                       TextTrimming="CharacterEllipsis" />
+        </Grid>
 
         <Border Grid.Row="3"
                 Background="#FF23262E"
@@ -61,11 +68,18 @@
             <controls:ChartView x:Name="IntradayChart" />
         </Border>
 
-        <TextBlock x:Name="DailyLabel"
-                   Grid.Row="4"
-                   Margin="0,14,0,4"
-                   FontSize="11"
-                   Foreground="#8A94A6" />
+        <Grid Grid.Row="4" Margin="0,14,0,4">
+            <TextBlock x:Name="DailyLabel"
+                       FontSize="11"
+                       Foreground="#8A94A6"
+                       HorizontalAlignment="Left" />
+            <TextBlock x:Name="DailyHover"
+                       FontSize="11"
+                       FontFamily="Consolas, Microsoft YaHei UI"
+                       Foreground="#FFC53D"
+                       HorizontalAlignment="Right"
+                       TextTrimming="CharacterEllipsis" />
+        </Grid>
 
         <Border Grid.Row="5"
                 Background="#FF23262E"

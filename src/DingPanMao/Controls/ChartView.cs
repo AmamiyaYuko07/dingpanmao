@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media;
 using DingPanMao.Models;
 
@@ -41,6 +42,21 @@ public sealed class ChartView : FrameworkElement
 
     private Color _downColor = Color.FromRgb(0x21, 0xC5, 0x5D);
 
+    private int _hoverIndex = -1;
+
+    /// <summary>鼠标所在位置的数据描述，交给外部信息条显示，避免浮层遮住图形。</summary>
+    public event Action<string>? HoverChanged;
+
+    public ChartView()
+    {
+        // FrameworkElement 默认没有背景、不参与命中测试，重写 HitTestCore 后这里不用额外处理。
+        IsHitTestVisible = true;
+    }
+
+    /// <summary>让图表本身接收鼠标事件（FrameworkElement 默认会穿透）。</summary>
+    protected override HitTestResult? HitTestCore(PointHitTestParameters hitTestParameters)
+        => new PointHitTestResult(this, hitTestParameters.HitPoint);
+
     public void Configure(int decimals, string suffix, bool redUpGreenDown)
     {
         _decimals = decimals;
@@ -56,6 +72,8 @@ public sealed class ChartView : FrameworkElement
         _bars = [];
         _mode = ChartMode.Line;
         _baseline = baseline;
+        _hoverIndex = -1;
+        HoverChanged?.Invoke(string.Empty);
         InvalidateVisual();
     }
 
@@ -66,7 +84,83 @@ public sealed class ChartView : FrameworkElement
         _points = [];
         _mode = ChartMode.Candle;
         _baseline = baseline;
+        _hoverIndex = -1;
+        HoverChanged?.Invoke(string.Empty);
         InvalidateVisual();
+    }
+
+    protected override void OnMouseMove(MouseEventArgs e)
+    {
+        base.OnMouseMove(e);
+
+        var index = IndexAt(e.GetPosition(this));
+        if (index != _hoverIndex)
+        {
+            _hoverIndex = index;
+            HoverChanged?.Invoke(index < 0 ? string.Empty : Describe(index));
+            InvalidateVisual();
+        }
+    }
+
+    protected override void OnMouseLeave(MouseEventArgs e)
+    {
+        base.OnMouseLeave(e);
+
+        if (_hoverIndex >= 0)
+        {
+            _hoverIndex = -1;
+            HoverChanged?.Invoke(string.Empty);
+            InvalidateVisual();
+        }
+    }
+
+    private string Describe(int index)
+    {
+        if (_mode == ChartMode.Candle)
+        {
+            if (index >= _bars.Count)
+            {
+                return string.Empty;
+            }
+
+            var bar = _bars[index];
+            return string.Format(
+                CultureInfo.InvariantCulture,
+                "{0}   开 {1}   高 {2}   低 {3}   收 {4}",
+                bar.Date.ToString("yyyy-MM-dd"),
+                Format(bar.Open),
+                Format(bar.High),
+                Format(bar.Low),
+                Format(bar.Close));
+        }
+
+        if (index >= _points.Count)
+        {
+            return string.Empty;
+        }
+
+        var point = _points[index];
+        return $"{point.Time:HH:mm}   {Format(point.Value)}";
+    }
+
+    private int IndexAt(Point position)
+    {
+        var count = _mode == ChartMode.Candle ? _bars.Count : _points.Count;
+        if (count < 2)
+        {
+            return -1;
+        }
+
+        const double left = 58;
+        const double right = 10;
+        var plotWidth = ActualWidth - left - right;
+        if (plotWidth <= 10 || position.X < left || position.X > left + plotWidth)
+        {
+            return -1;
+        }
+
+        var ratio = (position.X - left) / plotWidth;
+        return Math.Clamp((int)Math.Round(ratio * (count - 1)), 0, count - 1);
     }
 
     protected override void OnRender(DrawingContext dc)
@@ -157,10 +251,49 @@ public sealed class ChartView : FrameworkElement
             DrawLine(dc, plotWidth, X, Y, first, last);
         }
 
+        DrawHover(dc, plot, X, Y);
+
         // 绘图区边框
         dc.DrawRectangle(null, new Pen(GridBrush, 1), plot);
         _ = origin;
     }
+
+    /// <summary>十字光标与数据浮层。</summary>
+    private void DrawHover(
+        DrawingContext dc,
+        Rect plot,
+        Func<int, int, double> x,
+        Func<double, double> y)
+    {
+        if (_hoverIndex < 0)
+        {
+            return;
+        }
+
+        var count = _mode == ChartMode.Candle ? _bars.Count : _points.Count;
+        if (_hoverIndex >= count)
+        {
+            return;
+        }
+
+        var cursor = new Pen(new SolidColorBrush(Color.FromArgb(0x88, 0xFF, 0xC5, 0x3D)), 1)
+        {
+            DashStyle = DashStyles.Dot,
+        };
+        cursor.Freeze();
+
+        var px = x(_hoverIndex, count);
+        var py = _mode == ChartMode.Candle ? y(_bars[_hoverIndex].Close) : y(_points[_hoverIndex].Value);
+
+        dc.DrawLine(cursor, new Point(px, plot.Top), new Point(px, plot.Bottom));
+        dc.DrawLine(cursor, new Point(plot.Left, py), new Point(plot.Right, py));
+
+        var marker = new SolidColorBrush(Color.FromRgb(0xFF, 0xC5, 0x3D));
+        marker.Freeze();
+        dc.DrawEllipse(marker, null, new Point(px, py), 3, 3);
+    }
+
+    private string Format(double value) => value.ToString($"F{_decimals}") + _suffix;
 
     private static void DrawEmpty(DrawingContext dc, double left, double top, double width, double height)
     {
