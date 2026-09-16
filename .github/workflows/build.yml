@@ -12,9 +12,23 @@ permissions:
   contents: write
 
 jobs:
+  # 两个版本并行构建：
+  #   framework  —— 体积小，需要用户自己装 .NET 10 桌面运行时
+  #   standalone —— 免安装运行时，体积大
   build:
-    name: Build
+    name: Build (${{ matrix.label }})
     runs-on: windows-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: framework
+            self_contained: false
+            asset_suffix: win-x64
+          - label: standalone
+            self_contained: true
+            asset_suffix: win-x64-standalone
 
     steps:
       - name: Checkout
@@ -34,7 +48,8 @@ jobs:
       - name: Publish
         run: >
           dotnet publish src/DingPanMao/DingPanMao.csproj
-          -c Release -r win-x64 --self-contained false
+          -c Release -r win-x64
+          --self-contained ${{ matrix.self_contained }}
           -p:PublishSingleFile=true
           -p:IncludeNativeLibrariesForSelfExtract=true
           -o dist --nologo
@@ -43,39 +58,59 @@ jobs:
         shell: pwsh
         run: |
           $label = if ('${{ github.ref_type }}' -eq 'tag') { '${{ github.ref_name }}' } else { 'latest' }
-          $name = "DingPanMao-$label-win-x64"
+          $name = "DingPanMao-$label-${{ matrix.asset_suffix }}"
           Compress-Archive -Path dist/DingPanMao.exe -DestinationPath "$name.zip" -Force
-          "PACKAGE_NAME=$name" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          $size = [math]::Round((Get-Item "$name.zip").Length / 1KB, 1)
+          Write-Host "打包完成: $name.zip ($size KB)"
 
-      - name: Upload build artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: DingPanMao-win-x64
-          path: dist/DingPanMao.exe
+          name: DingPanMao-${{ matrix.asset_suffix }}
+          path: '*.zip'
           if-no-files-found: error
 
+  # 汇总两个版本的产物，统一发一次 Release，避免并发写同一个 release
+  release:
+    name: Publish release
+    needs: build
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: List artifacts
+        run: ls -lh artifacts
+
       # 打 tag（v1.0.0 这种）时发布正式 Release
-      - name: Publish release (tag)
-        if: github.event_name == 'push' && github.ref_type == 'tag'
+      - name: Release (tag)
+        if: github.ref_type == 'tag'
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ env.PACKAGE_NAME }}.zip
+          files: artifacts/*.zip
           generate_release_notes: true
           draft: false
 
-      # 推到 main 时更新一个名为 latest 的预发布包，方便随时下载最新构建
-      - name: Publish release (latest)
-        if: github.event_name == 'push' && github.ref_type == 'branch'
+      # 推到 main 时更新名为 latest 的预发布包
+      - name: Release (latest)
+        if: github.ref_type == 'branch'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
           name: Latest build
           prerelease: true
-          files: ${{ env.PACKAGE_NAME }}.zip
+          files: artifacts/*.zip
           body: |
             由 main 分支最新提交自动构建，非正式版本。
 
-            - Commit: `${{ github.sha }}`
-            - 构建时间: ${{ github.event.head_commit.timestamp }}
+            | 下载 | 说明 |
+            |---|---|
+            | `DingPanMao-latest-win-x64.zip` | 体积小（约 400 KB），需要先装 [.NET 10 桌面运行时](https://dotnet.microsoft.com/download/dotnet/10.0) |
+            | `DingPanMao-latest-win-x64-standalone.zip` | 免安装运行时，解压即用，体积较大 |
 
-            需要 .NET 10 桌面运行时。
+            - Commit: `${{ github.sha }}`

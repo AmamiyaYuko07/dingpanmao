@@ -20,6 +20,11 @@ git push origin v1.0.0
 
 ## 产物说明
 
-默认是**框架依赖**发布，压缩包很小（约 300 KB），使用者需要装 .NET 10 桌面运行时。
+每个 Release 都会同时提供两个版本，用户自己挑：
 
-如果需要免安装运行时的版本，把 workflow 里 `--self-contained false` 改成 `--self-contained true`，代价是压缩包会涨到 100 MB 以上。
+| 文件 | 体积 | 适用 |
+|---|---|---|
+| `DingPanMao-<版本>-win-x64.zip` | 约 400 KB | 机器上已装 .NET 10 桌面运行时 |
+| `DingPanMao-<版本>-win-x64-standalone.zip` | 约 60–80 MB | 免安装运行时，解压双击即用 |
+
+两个版本由同一个矩阵任务并行构建（`matrix.self_contained` 控制），构建产物先上传成 artifact，再由 `release` 任务统一下载并一次性发布，避免两个任务并发写同一个 Release。
