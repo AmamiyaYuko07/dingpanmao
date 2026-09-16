@@ -1,0 +1,81 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore src/DingPanMao/DingPanMao.csproj
+
+      - name: Build
+        run: dotnet build src/DingPanMao/DingPanMao.csproj -c Release --no-restore --nologo
+
+      - name: Publish
+        run: >
+          dotnet publish src/DingPanMao/DingPanMao.csproj
+          -c Release -r win-x64 --self-contained false
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -o dist --nologo
+
+      - name: Package
+        shell: pwsh
+        run: |
+          $label = if ('${{ github.ref_type }}' -eq 'tag') { '${{ github.ref_name }}' } else { 'latest' }
+          $name = "DingPanMao-$label-win-x64"
+          Compress-Archive -Path dist/DingPanMao.exe -DestinationPath "$name.zip" -Force
+          "PACKAGE_NAME=$name" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DingPanMao-win-x64
+          path: dist/DingPanMao.exe
+          if-no-files-found: error
+
+      # 打 tag（v1.0.0 这种）时发布正式 Release
+      - name: Publish release (tag)
+        if: github.event_name == 'push' && github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.PACKAGE_NAME }}.zip
+          generate_release_notes: true
+          draft: false
+
+      # 推到 main 时更新一个名为 latest 的预发布包，方便随时下载最新构建
+      - name: Publish release (latest)
+        if: github.event_name == 'push' && github.ref_type == 'branch'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Latest build
+          prerelease: true
+          files: ${{ env.PACKAGE_NAME }}.zip
+          body: |
+            由 main 分支最新提交自动构建，非正式版本。
+
+            - Commit: `${{ github.sha }}`
+            - 构建时间: ${{ github.event.head_commit.timestamp }}
+
+            需要 .NET 10 桌面运行时。
