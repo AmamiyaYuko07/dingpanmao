@@ -49,6 +49,7 @@ public partial class SettingsWindow : Window
         BuildAppearanceSection();
         BuildBehaviorSection();
         BuildAlertSection();
+        BuildAiSection();
     }
 
     private void BuildSlotsSection()
@@ -207,6 +208,76 @@ public partial class SettingsWindow : Window
         Body.Children.Add(LabeledSlider("settings.sensitivity", 0.5, 2.0, _draft.Sensitivity, v => _draft.Sensitivity = v, "F1"));
     }
 
+    private void BuildAiSection()
+    {
+        Body.Children.Add(SectionHeader("settings.ai"));
+
+        Body.Children.Add(CheckBoxRow("settings.ai", _draft.AiEnabled, v => _draft.AiEnabled = v));
+
+        var keyBox = new PasswordBox
+        {
+            Password = _draft.AiApiKey,
+            Padding = new Thickness(6, 4, 6, 4),
+            Background = new SolidColorBrush(Color.FromRgb(0x23, 0x26, 0x2E)),
+            Foreground = new SolidColorBrush(Color.FromRgb(0xE9, 0xEE, 0xF5)),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x33, 0xFF, 0xFF, 0xFF)),
+        };
+        keyBox.PasswordChanged += (_, _) => _draft.AiApiKey = keyBox.Password;
+        Body.Children.Add(LabeledRow("ai.apiKey", keyBox));
+
+        var warning = new TextBlock
+        {
+            Text = Lang.T("ai.keyWarning"),
+            FontSize = 11,
+            Foreground = Muted,
+            Margin = new Thickness(180, 0, 0, 8),
+            TextWrapping = TextWrapping.Wrap,
+        };
+        Body.Children.Add(warning);
+
+        Body.Children.Add(LabeledRow("ai.baseUrl", TextRow(_draft.AiBaseUrl, v => _draft.AiBaseUrl = v)));
+        Body.Children.Add(LabeledRow("ai.model", TextRow(_draft.AiModel, v => _draft.AiModel = v)));
+
+        Body.Children.Add(CheckBoxRow("ai.webSearch", _draft.AiWebSearch, v => _draft.AiWebSearch = v));
+        Body.Children.Add(new TextBlock
+        {
+            Text = Lang.T("ai.webSearchNote"),
+            FontSize = 11,
+            Foreground = Muted,
+            Margin = new Thickness(0, 0, 0, 8),
+            TextWrapping = TextWrapping.Wrap,
+        });
+
+        var promptBox = new TextBox
+        {
+            Text = _draft.AiCustomPrompt,
+            MinHeight = 70,
+            AcceptsReturn = true,
+            TextWrapping = TextWrapping.Wrap,
+            Padding = new Thickness(6, 4, 6, 4),
+            Background = new SolidColorBrush(Color.FromRgb(0x23, 0x26, 0x2E)),
+            Foreground = new SolidColorBrush(Color.FromRgb(0xE9, 0xEE, 0xF5)),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x33, 0xFF, 0xFF, 0xFF)),
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+        };
+        promptBox.TextChanged += (_, _) => _draft.AiCustomPrompt = promptBox.Text;
+        Body.Children.Add(LabeledRow("ai.prompt", promptBox));
+    }
+
+    private static TextBox TextRow(string value, Action<string> apply)
+    {
+        var box = new TextBox
+        {
+            Text = value,
+            Padding = new Thickness(6, 4, 6, 4),
+            Background = new SolidColorBrush(Color.FromRgb(0x23, 0x26, 0x2E)),
+            Foreground = new SolidColorBrush(Color.FromRgb(0xE9, 0xEE, 0xF5)),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x33, 0xFF, 0xFF, 0xFF)),
+        };
+        box.TextChanged += (_, _) => apply(box.Text);
+        return box;
+    }
+
     private TextBlock SectionHeader(string key) => new()
     {
         Text = Lang.T(key),
@@ -304,6 +375,12 @@ public partial class SettingsWindow : Window
         _original.BreakoutAlerts = _draft.BreakoutAlerts;
         _original.LevelAlerts = _draft.LevelAlerts;
         _original.Sensitivity = _draft.Sensitivity;
+        _original.AiEnabled = _draft.AiEnabled;
+        _original.AiApiKey = _draft.AiApiKey;
+        _original.AiBaseUrl = _draft.AiBaseUrl;
+        _original.AiModel = _draft.AiModel;
+        _original.AiWebSearch = _draft.AiWebSearch;
+        _original.AiCustomPrompt = _draft.AiCustomPrompt;
 
         Saved?.Invoke();
         Close();

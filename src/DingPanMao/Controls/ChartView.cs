@@ -124,14 +124,18 @@ public sealed class ChartView : FrameworkElement
             }
 
             var bar = _bars[index];
+            // 日 K 的涨跌幅相对前一个交易日收盘
+            var prevClose = index > 0 ? _bars[index - 1].Close : bar.Open;
+            var dailyChange = prevClose > 0 ? (bar.Close - prevClose) / prevClose * 100 : 0;
             return string.Format(
                 CultureInfo.InvariantCulture,
-                "{0}   开 {1}   高 {2}   低 {3}   收 {4}",
+                "{0}   开 {1}   高 {2}   低 {3}   收 {4}   {5}",
                 bar.Date.ToString("yyyy-MM-dd"),
                 Format(bar.Open),
                 Format(bar.High),
                 Format(bar.Low),
-                Format(bar.Close));
+                Format(bar.Close),
+                FormatPercent(dailyChange));
         }
 
         if (index >= _points.Count)
@@ -140,8 +144,12 @@ public sealed class ChartView : FrameworkElement
         }
 
         var point = _points[index];
-        return $"{point.Time:HH:mm}   {Format(point.Value)}";
+        var change = _baseline > 0 ? (point.Value - _baseline) / _baseline * 100 : 0;
+        return $"{point.Time:HH:mm}   {Format(point.Value)}   {FormatPercent(change)}";
     }
+
+    private static string FormatPercent(double percent)
+        => $"{(percent >= 0 ? "+" : string.Empty)}{percent:F2}%";
 
     private int IndexAt(Point position)
     {

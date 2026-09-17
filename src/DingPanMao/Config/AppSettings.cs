@@ -52,6 +52,24 @@ public sealed class AppSettings
     /// <summary>上次运行留下的提醒，用于启动时提示最近一次情况。</summary>
     public List<AlertEvent>? RecentAlerts { get; set; }
 
+    // ---- AI 分析 ----
+
+    public bool AiEnabled { get; set; }
+
+    /// <summary>接口密钥，明文保存在本地配置文件里。</summary>
+    public string AiApiKey { get; set; } = string.Empty;
+
+    /// <summary>接口地址，默认 DeepSeek，也可以填任意兼容 Responses API 的服务。</summary>
+    public string AiBaseUrl { get; set; } = "https://api.deepseek.com";
+
+    public string AiModel { get; set; } = "deepseek-v4-flash";
+
+    /// <summary>是否请求服务端联网搜索。目前只有 OpenAI 支持，DeepSeek 会忽略。</summary>
+    public bool AiWebSearch { get; set; }
+
+    /// <summary>自定义分析要求，留空使用内置提示词。</summary>
+    public string AiCustomPrompt { get; set; } = string.Empty;
+
     [JsonIgnore]
     public int SlotCount => Math.Clamp(Slots.Count, AppConfig.MinSlots, AppConfig.MaxSlots);
 }

@@ -37,6 +37,9 @@ public sealed record SymbolDefinition
     /// <summary>后缀，例如收益率的 "%"。</summary>
     public string Suffix { get; init; } = string.Empty;
 
+    /// <summary>联网搜索时用的关键词，留空则用 <see cref="Name"/>。</summary>
+    public string SearchKeyword { get; init; } = string.Empty;
+
     /// <summary>多语言名称，键是语言代码；找不到时回退到 <see cref="Name"/>。</summary>
     public IReadOnlyDictionary<string, string>? LocalizedNames { get; init; }
 
@@ -62,4 +65,8 @@ public sealed record SymbolDefinition
 
         return Name;
     }
+
+    /// <summary>取搜索关键词。</summary>
+    public string KeywordForSearch()
+        => string.IsNullOrWhiteSpace(SearchKeyword) ? Name : SearchKeyword;
 }

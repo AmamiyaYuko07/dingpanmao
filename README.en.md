@@ -26,6 +26,7 @@ A tiny Windows taskbar companion that shows live quotes for whatever you care ab
 - **10 UI languages** — English, 简体中文, 繁體中文, 日本語, 한국어, Русский, Español, Français, Deutsch, Português.
 - **Adjustable appearance** — opacity, font scale, and red-up/green-down or green-up/red-down.
 - **Click for details** — a chart window with intraday and the last 60 daily candles, with crosshair readouts (can be disabled in settings).
+- **AI analysis** — plug in any service that speaks the OpenAI Responses API (DeepSeek by default) and get a direct call: **strong buy / buy / add / hold / trim / exit**, plus suggested position size, key levels and a stop reference. Multi-turn follow-up supported, and you can reveal the model's reasoning. Your own key, stored locally only — never bundled or uploaded.
 - **Mouse wheel** — scroll on a slot to cycle through the built-in instruments.
 - **Fallback data sources** — EastMoney first, Sina Finance as backup, and the slot goes grey when everything fails.
 
@@ -42,6 +43,16 @@ A tiny Windows taskbar companion that shows live quotes for whatever you care ab
 
 2. Unzip and run `DingPanMao.exe` — the bar appears just left of the system tray.
 3. Right-click the bar → **Settings…** to choose symbols, language and alert switches.
+
+### About AI analysis
+
+The AI feature needs **your own API key**. Nothing is bundled and nothing is uploaded:
+
+1. Open Settings → **AI Analysis**, paste your key and turn the switch on
+2. Default endpoint is `https://api.deepseek.com` with model `deepseek-v4-flash`; any OpenAI Responses API compatible service works (e.g. `https://api.openai.com/v1`)
+3. The key is stored in plain text at `%LOCALAPPDATA%\DingPanMao\settings.json` — local to your machine only
+
+**Web search**: when enabled, OpenAI endpoints use the native `web_search` tool while DeepSeek and similar fall back to a built-in finance news search (free, no extra key). DeepSeek's `tools` parameter only supports `function`, so other tool types are ignored — hence the fallback.
 
 ## Usage
 

@@ -245,6 +245,12 @@ public partial class MainWindow : Window
         _topmostTimer.Tick += (_, _) => NudgeTopmost();
         _topmostTimer.Start();
 
+        // 便于调试：带 --detail 参数启动时立刻打开第一个格子的大图（不等待网络预热）。
+        if (Environment.GetCommandLineArgs().Contains("--detail") && _tiles.Count > 0)
+        {
+            OpenDetailFor(_tiles[0]);
+        }
+
         await BackfillAsync(_symbols);
         await RefreshAsync();
 
@@ -262,11 +268,6 @@ public partial class MainWindow : Window
             OnSettingsClick(this, new RoutedEventArgs());
         }
 
-        // 便于调试：带 --detail 参数启动时会直接打开第一个格子的大图。
-        if (Environment.GetCommandLineArgs().Contains("--detail") && _tiles.Count > 0)
-        {
-            OpenDetailFor(_tiles[0]);
-        }
     }
 
     private void OnClosed(object? sender, EventArgs e)
@@ -621,10 +622,17 @@ public partial class MainWindow : Window
 
         _detailWindow?.Close();
         _quotes.TryGetValue(_symbols[index].Id, out var quote);
-        _detailWindow = new DetailWindow(_market, _symbols[index], _settings, quote);
-        _detailWindow.Closed += (_, _) => _detailWindow = null;
-        _detailWindow.Show();
-        _detailWindow.Activate();
+        try
+        {
+            _detailWindow = new DetailWindow(_market, _symbols[index], _settings, quote);
+            _detailWindow.Closed += (_, _) => _detailWindow = null;
+            _detailWindow.Show();
+            _detailWindow.Activate();
+        }
+        catch (Exception ex)
+        {
+            App.Log(ex);
+        }
     }
 
     private async Task BackfillAndRefreshAsync()

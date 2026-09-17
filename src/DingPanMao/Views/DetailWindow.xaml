@@ -4,88 +4,186 @@
         xmlns:controls="clr-namespace:DingPanMao.Controls"
         Title="盯盘猫"
         Icon="/Resources/app.ico"
-        Width="560"
-        Height="620"
-        MinWidth="440"
-        MinHeight="460"
+        Width="1080"
+        Height="660"
+        MinWidth="760"
+        MinHeight="480"
         Background="#FF1B1D23"
         Foreground="#E9EEF5"
         WindowStartupLocation="CenterScreen"
         ShowInTaskbar="False">
     <Grid Margin="16">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="14" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
 
-        <Grid Grid.Row="0">
-            <TextBlock x:Name="NameText"
-                       FontSize="15"
-                       FontWeight="SemiBold"
-                       VerticalAlignment="Center"
-                       TextTrimming="CharacterEllipsis" />
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <TextBlock x:Name="PriceText"
-                           FontSize="17"
+        <!-- 左侧：行情图表 -->
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
+                <TextBlock x:Name="NameText"
+                           FontSize="15"
                            FontWeight="SemiBold"
-                           FontFamily="Consolas, Microsoft YaHei UI" />
-                <TextBlock x:Name="ChangeText"
-                           Margin="8,0,0,2"
-                           FontSize="12"
+                           VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <TextBlock x:Name="PriceText"
+                               FontSize="17"
+                               FontWeight="SemiBold"
+                               FontFamily="Consolas, Microsoft YaHei UI" />
+                    <TextBlock x:Name="ChangeText"
+                               Margin="8,0,0,2"
+                               FontSize="12"
+                               FontFamily="Consolas, Microsoft YaHei UI"
+                               VerticalAlignment="Bottom" />
+                </StackPanel>
+            </Grid>
+
+            <TextBlock x:Name="StatsText"
+                       Grid.Row="1"
+                       Margin="0,8,0,0"
+                       FontSize="11"
+                       FontFamily="Consolas, Microsoft YaHei UI"
+                       Foreground="#8A94A6" />
+
+            <Grid Grid.Row="2" Margin="0,14,0,4">
+                <TextBlock x:Name="IntradayLabel"
+                           FontSize="11"
+                           Foreground="#8A94A6"
+                           HorizontalAlignment="Left" />
+                <TextBlock x:Name="IntradayHover"
+                           FontSize="11"
                            FontFamily="Consolas, Microsoft YaHei UI"
-                           VerticalAlignment="Bottom" />
-            </StackPanel>
+                           Foreground="#FFC53D"
+                           HorizontalAlignment="Right"
+                           TextTrimming="CharacterEllipsis" />
+            </Grid>
+
+            <Border Grid.Row="3"
+                    Background="#FF23262E"
+                    CornerRadius="4"
+                    Padding="4">
+                <controls:ChartView x:Name="IntradayChart" />
+            </Border>
+
+            <Grid Grid.Row="4" Margin="0,14,0,4">
+                <TextBlock x:Name="DailyLabel"
+                           FontSize="11"
+                           Foreground="#8A94A6"
+                           HorizontalAlignment="Left" />
+                <TextBlock x:Name="DailyHover"
+                           FontSize="11"
+                           FontFamily="Consolas, Microsoft YaHei UI"
+                           Foreground="#FFC53D"
+                           HorizontalAlignment="Right"
+                           TextTrimming="CharacterEllipsis" />
+            </Grid>
+
+            <Border Grid.Row="5"
+                    Background="#FF23262E"
+                    CornerRadius="4"
+                    Padding="4">
+                <controls:ChartView x:Name="DailyChart" />
+            </Border>
         </Grid>
 
-        <TextBlock x:Name="StatsText"
-                   Grid.Row="1"
-                   Margin="0,8,0,0"
-                   FontSize="11"
-                   FontFamily="Consolas, Microsoft YaHei UI"
-                   Foreground="#8A94A6" />
+        <!-- 右侧：AI 分析 -->
+        <Border x:Name="AiPanel"
+                Grid.Column="2"
+                Width="380"
+                Background="#FF21242C"
+                CornerRadius="6"
+                Padding="12">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
 
-        <Grid Grid.Row="2" Margin="0,14,0,4">
-            <TextBlock x:Name="IntradayLabel"
-                       FontSize="11"
-                       Foreground="#8A94A6"
-                       HorizontalAlignment="Left" />
-            <TextBlock x:Name="IntradayHover"
-                       FontSize="11"
-                       FontFamily="Consolas, Microsoft YaHei UI"
-                       Foreground="#FFC53D"
-                       HorizontalAlignment="Right"
-                       TextTrimming="CharacterEllipsis" />
-        </Grid>
+                <Grid Grid.Row="0">
+                    <TextBlock x:Name="AiTitle"
+                               FontSize="12"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center" />
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <ToggleButton x:Name="ThinkingToggle"
+                                      Padding="10,3"
+                                      Margin="0,0,6,0"
+                                      FontSize="11"
+                                      Click="OnThinkingToggleClick" />
+                        <Button x:Name="AiCopyButton"
+                                Padding="10,3"
+                                Margin="0,0,6,0"
+                                FontSize="11"
+                                Click="OnCopyAiClick" />
+                        <Button x:Name="AiRunButton"
+                                Padding="12,3"
+                                FontSize="11"
+                                Click="OnRunAiClick" />
+                    </StackPanel>
+                </Grid>
 
-        <Border Grid.Row="3"
-                Background="#FF23262E"
-                CornerRadius="4"
-                Padding="4">
-            <controls:ChartView x:Name="IntradayChart" />
-        </Border>
+                <Border Grid.Row="1"
+                        Margin="0,10,0,0"
+                        Background="#FF16181E"
+                        CornerRadius="6"
+                        Padding="2">
+                    <RichTextBox x:Name="ChatBox"
+                                 IsReadOnly="True"
+                                 IsDocumentEnabled="True"
+                                 VerticalScrollBarVisibility="Auto"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 Padding="10,9"
+                                 FontSize="11"
+                                 Foreground="#D6DEEA" />
+                </Border>
 
-        <Grid Grid.Row="4" Margin="0,14,0,4">
-            <TextBlock x:Name="DailyLabel"
-                       FontSize="11"
-                       Foreground="#8A94A6"
-                       HorizontalAlignment="Left" />
-            <TextBlock x:Name="DailyHover"
-                       FontSize="11"
-                       FontFamily="Consolas, Microsoft YaHei UI"
-                       Foreground="#FFC53D"
-                       HorizontalAlignment="Right"
-                       TextTrimming="CharacterEllipsis" />
-        </Grid>
-
-        <Border Grid.Row="5"
-                Background="#FF23262E"
-                CornerRadius="4"
-                Padding="4">
-            <controls:ChartView x:Name="DailyChart" />
+                <Border Grid.Row="2"
+                        Margin="0,10,0,0"
+                        Background="#FF16181E"
+                        CornerRadius="6"
+                        Padding="6,5,5,5">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="AiInput"
+                                 Grid.Column="0"
+                                 MinHeight="28"
+                                 MaxHeight="76"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 VerticalScrollBarVisibility="Auto"
+                                 FontSize="11"
+                                 Padding="4,3"
+                                 Background="Transparent"
+                                 Foreground="#E9EEF5"
+                                 BorderThickness="0"
+                                 CaretBrush="#E9EEF5"
+                                 KeyDown="OnAiInputKeyDown" />
+                        <Button x:Name="AiSendButton"
+                                Grid.Column="1"
+                                Margin="6,0,0,0"
+                                Padding="12,3"
+                                FontSize="11"
+                                VerticalAlignment="Bottom"
+                                Click="OnSendClick" />
+                    </Grid>
+                </Border>
+            </Grid>
         </Border>
     </Grid>
 </Window>
