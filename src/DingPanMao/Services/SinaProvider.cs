@@ -13,6 +13,9 @@ namespace DingPanMao.Services;
 /// </summary>
 public sealed class SinaProvider : IMarketDataProvider
 {
+    /// <summary>新浪的行情接口强制校验 Referer，缺了会返回 403。</summary>
+    private const string Referer = "https://finance.sina.com.cn/";
+
     private const string QuoteApi = "https://hq.sinajs.cn/list=";
 
     private const string FuturesDailyApi =
@@ -67,7 +70,7 @@ public sealed class SinaProvider : IMarketDataProvider
         }
 
         var query = string.Join(",", targets.Select(t => t.Code));
-        var bytes = await _http.GetByteArrayAsync(QuoteApi + query, ct).ConfigureAwait(false);
+        var bytes = await GetBytesAsync(QuoteApi + query, ct).ConfigureAwait(false);
         var text = Gbk.GetString(bytes);
 
         var result = new List<Quote>(targets.Count);
@@ -103,7 +106,7 @@ public sealed class SinaProvider : IMarketDataProvider
         }
 
         var url = string.Format(CultureInfo.InvariantCulture, FuturesDailyApi, code[3..].ToUpperInvariant());
-        var raw = await _http.GetStringAsync(url, ct).ConfigureAwait(false);
+        var raw = await GetTextAsync(url, ct).ConfigureAwait(false);
         var match = JsonArrayRegex.Match(raw);
         if (!match.Success)
         {
@@ -139,7 +142,7 @@ public sealed class SinaProvider : IMarketDataProvider
         }
 
         var url = string.Format(CultureInfo.InvariantCulture, FuturesMinuteApi, code[3..].ToUpperInvariant());
-        var raw = await _http.GetStringAsync(url, ct).ConfigureAwait(false);
+        var raw = await GetTextAsync(url, ct).ConfigureAwait(false);
         var match = JsonArrayRegex.Match(raw);
         if (!match.Success)
         {
@@ -321,6 +324,26 @@ public sealed class SinaProvider : IMarketDataProvider
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         return Encoding.GetEncoding("GB18030");
+    }
+
+    /// <summary>带 Referer 的 GET，新浪接口缺这个头会 403。</summary>
+    private async Task<byte[]> GetBytesAsync(string url, CancellationToken ct)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.Referrer = new Uri(Referer);
+        using var response = await _http.SendAsync(request, ct).ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadAsByteArrayAsync(ct).ConfigureAwait(false);
+    }
+
+    /// <summary>带 Referer 的 GET（返回文本）。</summary>
+    private async Task<string> GetTextAsync(string url, CancellationToken ct)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.Referrer = new Uri(Referer);
+        using var response = await _http.SendAsync(request, ct).ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
     }
 
     private static DateTime ParseStamp(string dateText, string timeText)

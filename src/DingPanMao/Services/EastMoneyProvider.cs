@@ -10,7 +10,16 @@ namespace DingPanMao.Services;
 /// </summary>
 public sealed class EastMoneyProvider : IMarketDataProvider
 {
-    private const string QuoteApi = "https://push2.eastmoney.com/api/qt/ulist.np/get";
+    /// <summary>
+    /// 实时行情走这个路径。第一个域名偶尔会连不上，第二个是同源延时域名，
+    /// 数据一致（免费接口本来就有延迟），用作兜底。
+    /// </summary>
+    private static readonly string[] QuoteHosts =
+    [
+        "https://push2.eastmoney.com/api/qt/ulist.np/get",
+        "https://push2delay.eastmoney.com/api/qt/ulist.np/get",
+    ];
+
     private const string KlineApi = "https://push2his.eastmoney.com/api/qt/stock/kline/get";
     private const string SearchApi = "https://searchapi.eastmoney.com/api/suggest/get";
     private const string Ut = "fa5fd1943c7b386f172d6893dbfba10b";
@@ -40,8 +49,36 @@ public sealed class EastMoneyProvider : IMarketDataProvider
         }
 
         var secids = string.Join(",", targets.Select(s => s.Code));
-        var url = $"{QuoteApi}?secids={Uri.EscapeDataString(secids)}&fields={QuoteFields}";
-        using var document = await GetJsonAsync(url, ct).ConfigureAwait(false);
+        var query = $"?secids={Uri.EscapeDataString(secids)}&fields={QuoteFields}";
+
+        JsonDocument? document = null;
+        Exception? lastError = null;
+        foreach (var host in QuoteHosts)
+        {
+            try
+            {
+                document = await GetJsonAsync(host + query, ct).ConfigureAwait(false);
+                break;
+            }
+            catch (Exception ex)
+            {
+                lastError = ex;
+            }
+        }
+
+        if (document is null)
+        {
+            throw lastError ?? new InvalidOperationException("东方财富实时接口不可用");
+        }
+
+        using (document)
+        {
+            return ParseQuotes(document, targets);
+        }
+    }
+
+    private List<Quote> ParseQuotes(JsonDocument document, List<SymbolDefinition> targets)
+    {
 
         var result = new List<Quote>(targets.Count);
         if (document.RootElement.TryGetProperty("data", out var data)
